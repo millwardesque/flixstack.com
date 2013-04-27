@@ -1,0 +1,4 @@
+name = FlixStack Services
+description = Web services for the FlixStack site.
+core = 7.x
+dependencies[] = services

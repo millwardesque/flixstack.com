@@ -1,0 +1,43 @@
+<?php
+/**
+ * @file
+ * Code for the FlixStack Core feature.
+ */
+
+include_once 'flixstack_core.features.inc';
+
+define('FLIXSTACK_CORE_URL_MATCH_PATTERN_NETFLIX_DEFAULT', '/movieid=([0-9]+?)&/');
+
+function flixstack_core_menu() {
+  $items = array();
+
+  $items['admin/config/services/flixstack_core'] = array(
+    'title' => 'FlixStack core configuration',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('flixstack_core_admin'),
+    'access arguments' => array('administer flixstack core'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+function flixstack_core_permission() {
+  return array(
+    'aadminister flixstack core' => array(
+      'title' => t('Administer FlixStack core'),
+    ),
+  );
+}
+
+function flixstack_core_admin() {
+  $form = array();
+
+  $form['flixstack_core_url_match_pattern_netflix'] = array(
+    '#title' => t('URL matching pattern'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('flixstack_core_url_match_pattern_netflix', FLIXSTACK_CORE_URL_MATCH_PATTERN_NETFLIX_DEFAULT),
+  );
+
+  return system_settings_form($form);
+}

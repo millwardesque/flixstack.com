@@ -1,0 +1,146 @@
+<?php
+
+/**
+ * @file
+ * Module routines for the flixstack_services module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function flixstack_services_menu() {
+  $items = array();
+
+  $items['flixstack_services/test'] = array(
+    'title' => 'Test Services',
+    'page callback' => 'flixstack_services_test',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/** 
+ * Implements hook_services_resources().
+ */
+function flixstack_services_services_resources() {
+  $flixstack_resource = array(
+    'flixstack' => array(
+      'targeted_actions' => array(
+        'is_in_stack' => _flixstack_services_prepare_resource('is_in_stack'),
+        'are_in_stack' => _flixstack_services_prepare_resource('are_in_stack'),
+        'is_watched' => _flixstack_services_prepare_resource('is_watched'),
+        'get_url_pattern' => _flixstack_services_prepare_resource('get_url_pattern'),
+        'add_to_stack' => _flixstack_services_prepare_resource('add_to_stack'),
+        'remove_from_stack' => _flixstack_services_prepare_resource('remove_from_stack'),
+        'mark_as_watched' => _flixstack_services_prepare_resource('mark_as_watched'),
+      ),
+    ),
+  );
+
+  return $flixstack_resource;
+}
+
+/**
+ * Helper function for defining webservices.
+ *
+ * @param $name
+ *  The name of the service.
+ * @param $access_arguments
+ *  An array of access arguments.
+ *
+ * @return An array defining a webservice.
+ */
+function _flixstack_services_prepare_resource($name, $access_arguments = array('access content')) {
+  return array(
+    'file' => array(
+      'type' => 'inc',
+      'module' => 'flixstack_services',
+      'name' => 'flixstack_services.services',
+    ),
+    'args' => array(
+      array(
+        'name' => $name,
+        'optional' => TRUE,
+        'source' => array('path' => 1),
+        'type' => 'string',
+        'description' => 'The name of the service',
+      ),
+      array(
+        'name' => 'data',
+        'optional' => FALSE,
+        'source' => 'data',
+        'type' => 'array',
+        'description' => 'The data for the service',
+      ),
+    ),
+    'access arguments' => $access_arguments,
+    'callback' => '_flixstack_services_' . $name,
+  );
+}
+
+/**
+ * Test page for the flixstack_services().
+ */
+function flixstack_services_test() {
+  $id = '70155589';
+
+  return _flixstack_services_is_in_stack_helper($id) ? "Queued." : "Not queued";
+}
+
+/**
+ * Checks to see if a given ID is in the user's current queue.
+ *
+ * @param $id.
+ *  THe ID to check
+ */
+function _flixstack_services_is_in_stack_helper($id) {
+  $node = _flixstack_services_find_by_id($id);
+  $node = reset($node);
+  $is_flagged = false;
+
+  if (!empty($node)) {
+    $in_my_stack = flag_get_flag('in_my_stack');
+    $is_flagged = $in_my_stack->is_flagged($node->nid);
+  }
+
+  return $is_flagged;
+}
+
+/**
+ * Checks to see if a given ID has been watched by the user
+ *
+ * @param $id.
+ *  THe ID to check
+ */
+function _flixstack_services_is_watched_helper($id) {
+  $node = _flixstack_services_find_by_id($id);
+  $node = reset($node);
+  $is_watched = false;
+
+  if (!empty($node)) {
+    $flag = flag_get_flag('watched_video');
+    $is_watched = $flag->is_flagged($node->nid);
+  }
+
+  return $is_watched;
+}
+
+/**
+ * Finds all the netflix_video nodes with a given ID.
+ *
+ * @param $id
+ *   The ID to use for searching.
+ *
+ * @return An array of node arrays, or an empty array if none were found.
+ */
+function _flixstack_services_find_by_id($id) {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'netflix_video')
+    ->fieldCondition('field_video_id', 'value', $id, '=');
+  $result = $query->execute();
+
+  return !empty($result['node']) ? $result['node'] : array();
+}

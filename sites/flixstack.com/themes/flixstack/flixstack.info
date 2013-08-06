@@ -1,4 +1,14 @@
 name = FlixStack theme
 core = 7.x
+
+regions[header] = Header
+regions[help] = Help
+regions[content] = Content
+regions[sidebar] = Sidebar
+regions[footer] = Footer
+regions[page_top] = Page top
+regions[page_bottom] = Page bottom
+
+stylesheets[all][] = css/unsemantic-grid-responsive-tablet-no-ie7.css
 stylesheets[all][] = css/style.css
 scripts[] =  js/flixstack_theme.js

@@ -71,17 +71,18 @@ function fb_tab_admin_settings() {
     '#title' => t('Tab URL processing'),
     '#description' => t('This option alters links, so that instead of changing the iframe\'s URL, they change the top frame.  This adds some overhead to each tab served. Still, most sites will want this enabled.'),
   );
-  $form['process_settings'][FB_TAB_VAR_PROCESS_IFRAME] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Enable local link processing on iframe tabs.'),
-    '#default_value' => variable_get(FB_TAB_VAR_PROCESS_IFRAME, TRUE),
-    '#description' => t('Uncheck if you want the user to stay on the tab, instead of linking to canvas page or website.'),
+
+  $process_options = array(
+    FB_TAB_PROCESS_IFRAME_NONE => t('No processing'),
+    FB_TAB_PROCESS_IFRAME_TO_CANVAS => t('Link to canvas pages.  (Your app must support canvas pages.)'),
+    FB_TAB_PROCESS_IFRAME_TO_TAB_VIA_APP_DATA => t('Stay on page tab. (Uses the special "app_data" url parameter to express local path.)'),
   );
-  $form['process_settings'][FB_TAB_VAR_PROCESS_TO_CANVAS] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Links send user to canvas pages.'),
-    '#default_value' => variable_get(FB_TAB_VAR_PROCESS_TO_CANVAS, TRUE),
-    '#description' => t('If unchecked, processed links send user to your website instead of apps.facebook.com/...'),
+  $form['process_settings'][FB_TAB_VAR_PROCESS_IFRAME] = array(
+    '#type' => 'radios',
+    '#title' => t('Link processing on iframe tabs.'),
+    '#options' => $process_options,
+    '#default_value' => variable_get(FB_TAB_VAR_PROCESS_IFRAME, FB_TAB_PROCESS_IFRAME_TO_CANVAS),
+    '#description' => t('When a link appears on a page tab, should the linked-to content appear in the page tab, a canvas page, or some other way.  Note that without any processing, links may have unexpected behavior.'),
   );
   $form['process_settings'][FB_TAB_VAR_PROCESS_ABSOLUTE] = array(
     '#type' => 'checkbox',
@@ -147,6 +148,13 @@ function fb_tab_admin_form_alter(&$form, &$form_state, $form_id) {
       '#title' => 'View path when page is liked',
       '#default_value' => $config['profile_tab_url_liked'],
       '#description' => t('Optionally specify another path when the user has liked the page where the tab is shown.  Leave blank to use <em>view path</em>.'),
+    );
+
+    $form['fb_app_data']['fb_tab']['app_data_is_path'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('App_data overrides view path'),
+      '#default_value' => $config['app_data_is_path'],
+      '#description' => t('The special url parameter, app_data, is the view path.  This makes it possible to show any content in your page tab.'),
     );
 
     $form['fb_app_data']['fb_tab']['edit_url'] = array(

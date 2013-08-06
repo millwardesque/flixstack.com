@@ -9,9 +9,9 @@ dependencies[] = fb_app
 files[] = fb_connect.admin.inc
 files[] = fb_connect.install
 files[] = fb_connect.module
-; Information added by drupal.org packaging script on 2013-01-17
-version = "7.x-3.3-beta6"
+; Information added by drupal.org packaging script on 2013-07-18
+version = "7.x-3.4-beta1"
 core = "7.x"
 project = "fb"
-datestamp = "1358449004"
+datestamp = "1374169869"
 

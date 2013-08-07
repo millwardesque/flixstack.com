@@ -132,6 +132,11 @@ function flixstack_core_default_services_endpoint() {
       'actions' => array(
         'login' => array(
           'enabled' => '1',
+          'settings' => array(
+            'services' => array(
+              'resource_api_version' => '1.0',
+            ),
+          ),
         ),
         'logout' => array(
           'enabled' => '1',
@@ -140,6 +145,9 @@ function flixstack_core_default_services_endpoint() {
               'resource_api_version' => '1.0',
             ),
           ),
+        ),
+        'token' => array(
+          'enabled' => '1',
         ),
         'register' => array(
           'enabled' => '1',

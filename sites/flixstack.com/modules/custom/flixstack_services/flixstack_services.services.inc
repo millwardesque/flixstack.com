@@ -144,11 +144,12 @@ function _flixstack_services_add_to_stack($operation, $data) {
     $video_node = reset($video_nodes);
   }
 
-  // Add to the the stack
+  // Add to the the stack and mark as unwatched
   if ($video_node) {
     $in_my_stack = flag_get_flag('in_my_stack');
     $in_my_stack->flag('flag', $video_node->nid);
     $is_watched = flag_get_flag('watched_video');
+    $is_watched->flag('unflag', $video_node->nid);
 
     // Output
     $return->node = $video_node;

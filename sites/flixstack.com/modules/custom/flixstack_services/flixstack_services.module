@@ -100,9 +100,11 @@ function _flixstack_services_is_in_stack_helper($id) {
   $node = reset($node);
   $is_flagged = false;
 
+
   if (!empty($node)) {
     $in_my_stack = flag_get_flag('in_my_stack');
-    $is_flagged = $in_my_stack->is_flagged($node->nid);
+    $is_watched = flag_get_flag('watched_video');
+    $is_flagged = $in_my_stack->is_flagged($node->nid) && !$is_watched->is_flagged($node->nid);
   }
 
   return $is_flagged;

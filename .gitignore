@@ -4,3 +4,8 @@ sites/*/settings*.php
 # Ignore paths that contain user-generated content.
 sites/*/files
 sites/*/private
+
+# Ignore temp files
+.DS_Store
+sites/all/modules/ctools/*/cache/
+sites/all/modules/ctools/page_manager/plugins/cache/

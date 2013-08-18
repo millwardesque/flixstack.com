@@ -5,6 +5,7 @@ package = FlixStack
 version = 7.x-0.5
 project = flixstack_core
 dependencies[] = ctools
+dependencies[] = draggableviews
 dependencies[] = flag
 dependencies[] = flag
 dependencies[] = image

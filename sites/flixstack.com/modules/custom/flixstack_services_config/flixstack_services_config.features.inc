@@ -7,8 +7,7 @@
 /**
  * Implements hook_ctools_plugin_api().
  */
-function flixstack_services_config_ctools_plugin_api() {
-  list($module, $api) = func_get_args();
+function flixstack_services_config_ctools_plugin_api($module = NULL, $api = NULL) {
   if ($module == "strongarm" && $api == "strongarm") {
     return array("version" => "1");
   }
@@ -23,6 +22,7 @@ function flixstack_services_config_image_default_styles() {
   // Exported image style: service_view_thumbnail.
   $styles['service_view_thumbnail'] = array(
     'name' => 'service_view_thumbnail',
+    'label' => 'service_view_thumbnail',
     'effects' => array(
       1 => array(
         'label' => 'Scale and crop',

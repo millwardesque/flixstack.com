@@ -218,6 +218,7 @@ function fb_devel_fb($op, $data, &$return) {
     // server URL sanity check
     // This is an expensive test, because it invokes api_client.
     try {
+      // @todo admin.getAppProperties deprecated.  Use graph API instead.
       $props = $fb->api(array(
                  'method' => 'admin.getAppProperties',
                  'access_token' => fb_get_token($fb),
@@ -652,6 +653,7 @@ function fb_devel_info() {
     try {
       // app properties
       $token = fb_get_token($_fb);
+      // @todo: getAppProperties deprecated.  Use graph API instead.
       $props = $_fb->api(array(
                            'method' => 'admin.getAppProperties',
                            'properties' => 'about_url', 'application_name',

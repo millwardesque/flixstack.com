@@ -1207,14 +1207,14 @@ function fb_get_app_data(&$fb_app) {
 
 /**
  * Will return a human-readable name if the fb_app module supports it, or
- * fb_admin_get_app_properties($fb_app) has been called. However we don't
+ * fb_admin_get_app_info($fb_app) has been called.  However we don't
  * take the relatively expensive step of calling that ourselves.
  */
 function fb_get_app_title($fb_app) {
   if (isset($fb_app->title))
     return $fb_app->title;
-  elseif (isset($fb_app->application_name)) {
-    return $fb_app->application_name;
+  elseif (isset($fb_app->name)) {
+    return $fb_app->name;
   }
   else {
     return $fb_app->label;
@@ -1331,14 +1331,6 @@ function fb_get_groups_data($fbu, $fb_app = NULL) {
 
 //// Menu structure.
 
-// Attempt to make an access callback
-function fb_user_accessXXX($string, $account = NULL) {
-  if (!user_access(FB_PERM_ADMINISTER, $account)) {
-    // Require the user to authorize the app.
-    fb_require_authorization();
-  }
-  return user_access($string, $account);
-}
 
 /**
  * Implements hook_menu().

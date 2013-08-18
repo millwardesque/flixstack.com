@@ -18,16 +18,31 @@ function fb_app_fb_admin($op, $data, &$return) {
     // URLs for Facebook events we support.
     $return['uninstall_url'] = url(FB_APP_PATH_EVENT . '/' . $fb_app->label . "/" . FB_APP_EVENT_POST_REMOVE . '/', array(
                                      'absolute' => TRUE,
-                                     'language' => FALSE,
+                                     'language' => NULL,
                                    ));
     $return['authorize_url'] = url(FB_APP_PATH_EVENT . '/' . $fb_app->label . "/" . FB_APP_EVENT_POST_AUTHORIZE . '/', array(
                                      'absolute' => TRUE,
-                                     'language' => FALSE,
+                                     'language' => NULL,
                                    ));
   }
+  elseif ($op == FB_ADMIN_OP_POST_SET_PROPERTIES) {
+    // Application properties have been set or synced on facebook.  Ensure we store the application's proper namespace.
+    try {
+      $graph = fb_graph($data['fb_app']->id, array(
+                          'access_token' => fb_get_token($data['fb']),
+                        ));
+      db_update('fb_app')
+        ->fields(array('canvas' => $graph['namespace']))
+        ->condition('fba_id', $graph['id'], '=')
+        ->execute();
+    }
+    catch (Exception $e) {
+      fb_log_exception($e, t('Failed to learn application namespace from Facebook.'));
+    }
+  }
   elseif ($op == FB_ADMIN_OP_LIST_PROPERTIES) {
-    $return[t('Post-Authorize Callback URL')] = 'authorize_url';
-    $return[t('Post-Remove Callback URL')] = 'uninstall_url';
+    $return[t('Application Name')] = 'name';
+    $return[t('De-Authorize Callback URL')] = 'deauth_callback_url';
   }
   elseif (($op == FB_ADMIN_OP_LOCAL_LINKS) && isset($fb_app->fba_id)) {
     // Path to edit this app.
@@ -184,11 +199,11 @@ function fb_app_edit_form_validate($form, &$form_state) {
       }
     }
     // Getting properties confirms apikey and secret.
-    fb_admin_get_app_properties($fb_app);
-    if (!$fb_app->application_name) {
+    fb_admin_get_app_info($fb_app);
+    if (!$fb_app->name) {
       // Don't use form_set_error(), as that will prevent the user from saving any data.
       drupal_set_message(t("Unable to get application properties.  Possibly, you've given the wrong id or secret.  Possibly, this server is unable to reach facebook's servers.  Your application will not work properly!"), 'error');
-      $fb_app->application_name = 'UNKOWN';
+      $fb_app->name = 'UNKOWN';
     }
   }
 }
@@ -197,8 +212,8 @@ function fb_app_admin_form_submit($form, &$form_state) {
   $fb_app = (object)$form_state['values'];
   $fb_app->data = serialize($fb_app->fb_app_data);
 
-  // Get canvas_name, application_name from facebook.
-  fb_admin_get_app_properties($fb_app);
+  // Get namespace, name from facebook.
+  fb_admin_get_app_info($fb_app);
 
   $orig_app = $form['#fb_app'];
 
@@ -213,15 +228,15 @@ function fb_app_admin_form_submit($form, &$form_state) {
           'secret' => $fb_app->secret,
           'id' => $fb_app->id,
           // Canvas and title are learned from facebook, not the form.
-          'canvas' => !empty($fb_app->canvas_name) ? $fb_app->canvas_name : '',
-          'title' => $fb_app->application_name ? $fb_app->application_name : $fb_app->label,
+          'canvas' => !empty($fb_app->namespace) ? $fb_app->namespace : '',
+          'title' => !empty($fb_app->name) ? $fb_app->name : $fb_app->label,
           'data' => $fb_app->data,
-        ))
+                 ))
         ->condition('fba_id', $orig_app->fba_id)
         ->execute();
 
-      watchdog('fb_app', 'Updated Facebook Application %label.',
-               array('%label' => $fb_app->label,
+      watchdog('fb_app', 'Updated Facebook Application %label.', array(
+                 '%label' => $fb_app->label,
                ),
                WATCHDOG_NOTICE,
                l(t('view apps'), FB_PATH_ADMIN_APPS));
@@ -239,7 +254,7 @@ function fb_app_admin_form_submit($form, &$form_state) {
                                  '%title' => $fb_app->application_name)));
     }
     drupal_set_message(t('Saved changes to Facebook application %title (%label).',
-                         array('%title' => $fb_app->application_name,
+                         array('%title' => $fb_app->name,
                                '%label' => $fb_app->label)));
 
     // Should we just go ahead and flush the cache here automatically?
@@ -258,8 +273,8 @@ function fb_app_admin_form_submit($form, &$form_state) {
                    'secret' => $fb_app->secret,
                    'id' => $fb_app->id,
                    // Canvas and title are learned from facebook, not the form.
-                   'canvas' => !empty($fb_app->canvas_name) ? $fb_app->canvas_name : '',
-                   'title' => !empty($fb_app->application_name) ? $fb_app->application_name : $fb_app->label,
+                   'canvas' => !empty($fb_app->namespace) ? $fb_app->namespace : '',
+                   'title' => !empty($fb_app->name) ? $fb_app->name : $fb_app->label,
                    'data' => $fb_app->data,
                  ))
         ->execute();
@@ -272,7 +287,7 @@ function fb_app_admin_form_submit($form, &$form_state) {
 
       drupal_set_message(t('Created facebook application %title (%label).', array(
                              '%label' => $fb_app->label,
-                             '%title' => $fb_app->application_name,
+                             '%title' => $fb_app->name,
                            )));
     }
     catch (Exception $e) {
@@ -356,14 +371,14 @@ function fb_app_set_app_properties($fb_app) {
     if ($fb_app_data['set_app_props']) {
       if ($fb = fb_api_init($fb_app)) {
         try {
-          $result = fb_call_method($fb, 'admin.setAppProperties', array(
-                                     'properties' => json_encode($props),
-                                   ));
+          $result = fb_graph($fb_app->id, $props + array('access_token' => fb_get_token($fb)), 'POST', $fb);
+          // @todo handle $result != true.
+
           drupal_set_message(t('Note that it may take several minutes for property changes to propagate to all facebook servers.'));
           if (fb_verbose()) {
             drupal_set_message(t('Set the following properties for %label application:<br/><pre>!props</pre>', array('%label' => $fb_app->label, '!props' => print_r($props, 1))));
-            watchdog('fb_app', 'Set facebook app properties for %label.',
-                     array('%label' => $fb_app->label,
+            watchdog('fb_app', 'Set facebook app properties for %label.', array(
+                       '%label' => $fb_app->label,
                      ),
                      WATCHDOG_NOTICE,
                      l(t('view apps'), FB_PATH_ADMIN));
@@ -375,7 +390,8 @@ function fb_app_set_app_properties($fb_app) {
                       'fb' => $fb,
                       'properties' => $props,
                     ), array(), FB_ADMIN_HOOK);
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
           drupal_set_message(t('Failed to set the following properties for %label application.  You may need to manually editing remote settings!<br/><pre>!props</pre>', array('%label' => $fb_app->label, '!props' => print_r($props, 1))), 'error');
           fb_log_exception($e, t('Failed to set application properties on Facebook. %props', array('%props' => json_encode($props))));
         }

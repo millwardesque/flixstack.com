@@ -24,18 +24,19 @@ function fb_canvas_fb_admin($op, $data, &$return) {
       // Paving the way to make URL alters optional.
       $callback_url = url('', array('absolute' => TRUE));
     }
-    $return['callback_url'] = $callback_url;
+    $return['canvas_url'] = $callback_url;
     if (variable_get(FB_VAR_SECURE_URLS, FB_SECURE_URLS_SOMETIMES) >= FB_SECURE_URLS_SOMETIMES) {
-      $return['secure_callback_url'] = str_replace('http://', 'https://', $callback_url);
+      $return['secure_canvas_url'] = str_replace('http://', 'https://', $callback_url);
     }
     if (variable_get(FB_VAR_SECURE_URLS, FB_SECURE_URLS_SOMETIMES) <= FB_SECURE_URLS_SOMETIMES) {
-      // Make callback_url HTTP, even if we administer drupal via HTTPS.
-      $return['callback_url'] = str_replace('https://', 'http://', $return['callback_url']);
+      // Make canvas_url HTTP, even if we administer drupal via HTTPS.
+      $return['canvas_url'] = str_replace('https://', 'http://', $return['canvas_url']);
     }
+
   }
   elseif ($op == FB_ADMIN_OP_LIST_PROPERTIES) {
-    $return[t('Callback URL')] = 'callback_url';
-    $return[t('Secure Callback URL')] = 'secure_callback_url';
+    $return[t('Canvas URL')] = 'canvas_url';
+    $return[t('Secure Canvas URL')] = 'secure_canvas_url';
   }
 }
 

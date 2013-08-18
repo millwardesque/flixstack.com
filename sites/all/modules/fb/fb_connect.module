@@ -131,9 +131,12 @@ function _fb_connect_add_js($fb_app, $fb) {
     return;
 
   if (!isset($just_once)) {
+    // Drupal is inconsistent about appending a '/' at the end of urls.
+    $front_url = url('<front>');
+    $front_url .= (substr($front_url, -1) == '/' ? '' : '/');
     drupal_add_js(array(
                     'fb_connect' => array(
-                      'front_url' => url('<front>'),
+                      'front_url' => $front_url,
                       'fbu' => fb_facebook_user(),
                       'uid' => $GLOBALS['user']->uid,
                     ),

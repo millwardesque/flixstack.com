@@ -24,36 +24,24 @@ function fb_tab_fb_admin($op, $data, &$return) {
         // Paving the way to make URL alters optional.
         $callback_url = url('', array('absolute' => TRUE));
       }
-      $return['profile_tab_url'] = $callback_url . FB_TAB_PATH_VIEW;
+      $return['page_tab_url'] = $callback_url . FB_TAB_PATH_VIEW;
 
       if (variable_get(FB_VAR_SECURE_URLS, FB_SECURE_URLS_SOMETIMES) >= FB_SECURE_URLS_SOMETIMES) {
-        $return['secure_page_tab_url'] = str_replace('http://', 'https://', $return['profile_tab_url']) . '/'; // Must end with '/' ???
+        $return['secure_page_tab_url'] = str_replace('http://', 'https://', $return['page_tab_url']) . '/'; // Must end with '/' ???
       }
       if (variable_get(FB_VAR_SECURE_URLS, FB_SECURE_URLS_SOMETIMES) <= FB_SECURE_URLS_SOMETIMES) {
-        $return['profile_tab_url'] = str_replace('https://', 'http://', $return['profile_tab_url']);
+        $return['page_tab_url'] = str_replace('https://', 'http://', $return['page_tab_url']);
       }
     }
     else {
-      $return['profile_tab_url'] = '';
+      $return['page_tab_url'] = '';
     }
 
-    if ($config['edit_url']) {
-      // http://forum.developers.facebook.net/viewtopic.php?id=88920
-      $return['edit_url'] =  url($config['edit_url'], array(
-                                   'absolute' => TRUE,
-                                   'fb_canvas' => $fb_app->label, // @TODO make canvas optional
-                                 ));;
-    }
-    else {
-      $return['edit_url'] = '';
-    }
   }
   elseif ($op == FB_ADMIN_OP_LIST_PROPERTIES) {
-    $return[t('Profile Tab Name')] = 'tab_default_name';
-    $return[t('Profile Tab URL')] = 'profile_tab_url';
+    $return[t('Page Tab Name')] = 'page_tab_default_name';
+    $return[t('Page Tab URL')] = 'page_tab_url';
     $return[t('Secure Page Tab URL')] = 'secure_page_tab_url';
-    $return[t('Profile Tab Edit URL')] = 'edit_url';
-    $return[t('Installable')] = 'installable';
   }
 }
 
